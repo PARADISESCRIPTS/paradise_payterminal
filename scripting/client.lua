@@ -14,35 +14,71 @@ local Framework = GetFramework()
 CreateThread(function()
     for businessId, business in pairs(Config.Businesses) do
         for i, coords in ipairs(business.locations) do
-            exports.ox_target:addSphereZone({
-                coords = coords,
-                radius = 1.0,
-                debug = false,
-                options = {
-                    {
-                        name = 'business_terminal_' .. businessId .. '_' .. i,
-                        icon = 'fas fa-cash-register',
-                        label = business.name .. ' Terminal',
-                        canInteract = function()
-                            local PlayerData = QBCore.Functions.GetPlayerData()
-                            if not PlayerData or not PlayerData.job then return false end
-                            
-                            local playerJob = PlayerData.job.name
-                            for _, job in ipairs(business.jobs) do
-                                if job == playerJob then
-                                    return true
+            if Config.Target == 'ox' then
+                exports.ox_target:addSphereZone({
+                    coords = coords,
+                    radius = 1.0,
+                    debug = false,
+                    options = {
+                        {
+                            name = 'business_terminal_' .. businessId .. '_' .. i,
+                            icon = 'fas fa-cash-register',
+                            label = business.name .. ' Terminal',
+                            canInteract = function()
+                                local PlayerData = QBCore.Functions.GetPlayerData()
+                                if not PlayerData or not PlayerData.job then return false end
+                                
+                                local playerJob = PlayerData.job.name
+                                for _, job in ipairs(business.jobs) do
+                                    if job == playerJob then
+                                        return true
+                                    end
                                 end
+                                return false
+                            end,
+                            onSelect = function()
+                                startBusinessTerminal(businessId, business)
                             end
-                            return false
-                        end,
-                        onSelect = function()
-                            startBusinessTerminal(businessId, business)
-                        end
+                        }
                     }
-                }
-            })
+                })
+            elseif Config.Target == 'qb' then
+                exports['qb-target']:AddCircleZone('business_terminal_' .. businessId .. '_' .. i, coords, 1.0, {
+                    name = 'business_terminal_' .. businessId .. '_' .. i,
+                    debugPoly = false,
+                    useZ = true,
+                }, {
+                    options = {
+                        {
+                            type = "client",
+                            event = "paradise_payterminal:client:useBusinessTarget",
+                            icon = "fas fa-cash-register",
+                            label = business.name .. " Terminal",
+                            businessId = businessId,
+                            business = business,
+                            canInteract = function()
+                                local PlayerData = QBCore.Functions.GetPlayerData()
+                                if not PlayerData or not PlayerData.job then return false end
+                                
+                                local playerJob = PlayerData.job.name
+                                for _, job in ipairs(business.jobs) do
+                                    if job == playerJob then
+                                        return true
+                                    end
+                                end
+                                return false
+                            end,
+                        },
+                    },
+                    distance = 2.0
+                })
+            end
         end
     end
+end)
+
+RegisterNetEvent('paradise_payterminal:client:useBusinessTarget', function(data)
+    startBusinessTerminal(data.businessId, data.business)
 end)
 
 RegisterNetEvent('paradise_payterminal:client:useItem', function()

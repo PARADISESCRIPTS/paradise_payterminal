@@ -6,6 +6,8 @@ Config.BusinessItemName = 'business_terminal'
 
 Config.UseSameItem = false
 
+Config.Target = 'ox'  -- use 'ox' for ox_target or use 'qb' for qb-target
+
 Config.MaxDistance = 5.0
 
 Config.MaxAmount = 999999
