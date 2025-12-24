@@ -2,6 +2,10 @@ Config = {}
 
 Config.ItemName = 'payment_terminal'
 
+Config.BusinessItemName = 'business_terminal'
+
+Config.UseSameItem = false
+
 Config.MaxDistance = 5.0
 
 Config.MaxAmount = 999999

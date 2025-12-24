@@ -46,6 +46,59 @@ CreateThread(function()
 end)
 
 RegisterNetEvent('paradise_payterminal:client:useItem', function()
+    if Config.UseSameItem then
+        showTerminalSelection()
+    else
+        startPaymentTerminal(false)
+    end
+end)
+
+RegisterNetEvent('paradise_payterminal:client:useBusinessItem', function()
+    if Config.UseSameItem then
+        showTerminalSelection()
+    else
+        local PlayerData = QBCore.Functions.GetPlayerData()
+        if not PlayerData or not PlayerData.job or not PlayerData.job.onduty then
+            lib.notify({
+                title = 'Business Terminal',
+                description = 'You must be on duty to use the business terminal',
+                type = 'error'
+            })
+            return
+        end
+        
+        local playerJob = PlayerData.job.name
+        local businessInfo = nil
+        
+        for businessId, business in pairs(Config.Businesses) do
+            for _, job in ipairs(business.jobs) do
+                if job == playerJob then
+                    businessInfo = {
+                        id = businessId,
+                        name = business.name,
+                        employeePercentage = business.employeePercentage,
+                        isEmployee = true
+                    }
+                    break
+                end
+            end
+            if businessInfo then break end
+        end
+        
+        if not businessInfo then
+            lib.notify({
+                title = 'Business Terminal',
+                description = 'You are not authorized to use any business terminal',
+                type = 'error'
+            })
+            return
+        end
+        
+        startPaymentTerminal(true, businessInfo)
+    end
+end)
+
+function showTerminalSelection()
     local PlayerData = QBCore.Functions.GetPlayerData()
     if not PlayerData or not PlayerData.job then
         startPaymentTerminal(false)
@@ -115,7 +168,7 @@ RegisterNetEvent('paradise_payterminal:client:useItem', function()
             end
         end
     end
-end)
+end
 
 function startBusinessTerminal(businessId, business)
     TriggerServerEvent('paradise_payterminal:server:checkBusinessAccess', businessId)

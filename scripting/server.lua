@@ -14,10 +14,22 @@ if isQBX then
     exports.qbx_core:CreateUseableItem(Config.ItemName, function(source, item)
         TriggerClientEvent('paradise_payterminal:client:useItem', source)
     end)
+    
+    if not Config.UseSameItem then
+        exports.qbx_core:CreateUseableItem(Config.BusinessItemName, function(source, item)
+            TriggerClientEvent('paradise_payterminal:client:useBusinessItem', source)
+        end)
+    end
 else
     QBCore.Functions.CreateUseableItem(Config.ItemName, function(source, item)
         TriggerClientEvent('paradise_payterminal:client:useItem', source)
     end)
+    
+    if not Config.UseSameItem then
+        QBCore.Functions.CreateUseableItem(Config.BusinessItemName, function(source, item)
+            TriggerClientEvent('paradise_payterminal:client:useBusinessItem', source)
+        end)
+    end
 end
 
 local function GetPlayer(source)
