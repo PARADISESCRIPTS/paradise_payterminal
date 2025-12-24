@@ -1,5 +1,5 @@
 local QBCore
-local isQBX = GetResourceState('qbx_core') == 'started'
+local isQBX = Config.Framework == 'qbx'
 
 if isQBX then
     QBCore = exports.qbx_core

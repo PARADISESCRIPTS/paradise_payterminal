@@ -1,15 +1,11 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+local QBCore
+local isQBX = Config.Framework == 'qbx'
 
-local function GetFramework()
-    if GetResourceState('qbx_core') == 'started' then
-        return 'qbx'
-    elseif GetResourceState('qb-core') == 'started' then
-        return 'qb'
-    end
-    return nil
+if isQBX then
+    QBCore = exports.qbx_core
+else
+    QBCore = exports['qb-core']:GetCoreObject()
 end
-
-local Framework = GetFramework()
 
 CreateThread(function()
     for businessId, business in pairs(Config.Businesses) do

@@ -1,5 +1,7 @@
 Config = {}
 
+Config.Framework = 'qb'-- use 'qb' for qb-core or use 'qbx' for qbx_core
+
 Config.ItemName = 'payment_terminal'
 
 Config.BusinessItemName = 'business_terminal'
