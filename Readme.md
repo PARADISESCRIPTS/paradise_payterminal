@@ -16,7 +16,7 @@
         }
     },
 
-    ['business_terminal'] = {
+['business_terminal'] = {
         label = 'Business Terminal',
         weight = 500,
         stack = true,
