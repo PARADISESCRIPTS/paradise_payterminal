@@ -98,7 +98,12 @@ local function SendDiscordLog(title, description, color, fields)
 end
 
 local function AddMoneyToBusiness(businessAccount, amount, memo)
-    if Config.Banking.useSnipeBanking and GetResourceState('snipe-banking') == 'started' then
+    if not Config.Banking then
+        print('^1[ERROR] Config.Banking is nil - config file not loaded properly^7')
+        return false
+    end
+    
+    if Config.Banking.system == 'snipe' and GetResourceState('snipe-banking') == 'started' then
         exports['snipe-banking']:AddMoneyToAccount(businessAccount, amount)
         
         if Config.Banking.createTransactions then
@@ -113,8 +118,29 @@ local function AddMoneyToBusiness(businessAccount, amount, memo)
             )
         end
         return true
+    elseif Config.Banking.system == 'qb' and GetResourceState('qb-management') == 'started' then
+        exports['qb-management']:AddMoney(businessAccount, amount)
+        return true
     end
     return false
+end
+
+local function CreatePersonalTransaction(Player, amount, memo, transactionType, otherPlayer)
+    if not Config.Banking then return end
+    
+    if Config.Banking.system == 'snipe' and Config.Banking.createTransactions and GetResourceState('snipe-banking') == 'started' then
+        local playerIdentifier = GetPlayerIdentifier(Player)
+        local otherIdentifier = otherPlayer and GetPlayerIdentifier(otherPlayer) or nil
+        
+        exports['snipe-banking']:CreatePersonalTransactions(
+            playerIdentifier,
+            amount,
+            memo,
+            transactionType,
+            otherIdentifier,
+            false
+        )
+    end
 end
 
 local function GetPlayerIdentifier(Player)
@@ -260,27 +286,9 @@ RegisterNetEvent('paradise_payterminal:server:payBill', function(billId, senderI
         local businessAccount = Config.Businesses[businessInfo.id].businessAccount
         local businessAdded = AddMoneyToBusiness(businessAccount, businessEarnings, 'Payment Terminal Revenue - ' .. billData.description)
         
-        if Config.Banking.useSnipeBanking and Config.Banking.createTransactions and GetResourceState('snipe-banking') == 'started' then
-            local employeeIdentifier = GetPlayerIdentifier(SenderPlayer)
-            local customerIdentifier = GetPlayerIdentifier(Player)
-            
-            exports['snipe-banking']:CreatePersonalTransactions(
-                employeeIdentifier,
-                employeeEarnings + tipAmount,
-                'Payment Terminal Earnings - ' .. billData.description,
-                'deposit',
-                customerIdentifier,
-                false
-            )
-            
-            exports['snipe-banking']:CreatePersonalTransactions(
-                customerIdentifier,
-                totalAmount,
-                'Payment Terminal Bill - ' .. billData.description,
-                'withdraw',
-                employeeIdentifier,
-                false
-            )
+        if Config.Banking.system == 'snipe' and Config.Banking.createTransactions and GetResourceState('snipe-banking') == 'started' then
+            CreatePersonalTransaction(SenderPlayer, employeeEarnings + tipAmount, 'Payment Terminal Earnings - ' .. billData.description, 'deposit', Player)
+            CreatePersonalTransaction(Player, totalAmount, 'Payment Terminal Bill - ' .. billData.description, 'withdraw', SenderPlayer)
         end
         
         TriggerClientEvent('paradise_payterminal:client:employeeEarnings', senderId, employeeEarnings, tipAmount, businessInfo.name)
@@ -311,27 +319,9 @@ RegisterNetEvent('paradise_payterminal:server:payBill', function(billId, senderI
     else
         AddMoney(SenderPlayer, paymentMethod, totalAmount, 'paradise_payterminal-received')
         
-        if Config.Banking.useSnipeBanking and Config.Banking.createTransactions and GetResourceState('snipe-banking') == 'started' then
-            local receiverIdentifier = GetPlayerIdentifier(SenderPlayer)
-            local payerIdentifier = GetPlayerIdentifier(Player)
-            
-            exports['snipe-banking']:CreatePersonalTransactions(
-                receiverIdentifier,
-                totalAmount,
-                'Payment Terminal Payment - ' .. billData.description,
-                'deposit',
-                payerIdentifier,
-                false
-            )
-            
-            exports['snipe-banking']:CreatePersonalTransactions(
-                payerIdentifier,
-                totalAmount,
-                'Payment Terminal Bill - ' .. billData.description,
-                'withdraw',
-                receiverIdentifier,
-                false
-            )
+        if Config.Banking.system == 'snipe' and Config.Banking.createTransactions and GetResourceState('snipe-banking') == 'started' then
+            CreatePersonalTransaction(SenderPlayer, totalAmount, 'Payment Terminal Payment - ' .. billData.description, 'deposit', Player)
+            CreatePersonalTransaction(Player, totalAmount, 'Payment Terminal Bill - ' .. billData.description, 'withdraw', SenderPlayer)
         end
         
         if Paradise.DiscordLogging.logTypes.payments then

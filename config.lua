@@ -36,6 +36,7 @@ Config.Businesses = {
 }
 
 Config.Banking = {
+    system = 'snipe', -- use 'snipe' for snipe-banking or use 'qb' for qb-management
     useSnipeBanking = true,
     createTransactions = true,
 }
